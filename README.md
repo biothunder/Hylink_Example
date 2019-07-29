@@ -33,7 +33,7 @@ dependencies {
 # Sample usage - Scan and filter with uuids
 ![alt tag](https://media.giphy.com/media/daPFmDWynBAZij4hF7/source.gif)
 
-Before scan, check thast you have ACCESS_COARSE_LOCATION.
+Before scan, check thast you have ACCESS_COARSE_LOCATION permission.
 ```groovy
 final String[] permissions = {android.Manifest.permission.ACCESS_COARSE_LOCATION};
         if (EasyPermissions.hasPermissions(this, permissions)) {
@@ -44,6 +44,7 @@ final String[] permissions = {android.Manifest.permission.ACCESS_COARSE_LOCATION
 ```
 
 Implements HyLink.Listener and declare your hyLinkListener to override hyLinkScan method.
+
 You can update scanned device to ui when hyLinkScan received new hyDevice.
 ```groovy
 public class HyLinkListenerAdapter implements HyLink.Listener {
@@ -95,4 +96,56 @@ UUID[] uuids = {UUID.fromString(BLE_GATT_SERVICE_UUID_CROCO_H),
                 UUID.fromString(BLE_GATT_SERVICE_UUID_GORILLA),
                 UUID.fromString(BLE_GATT_SERVICE_UUID_DFU)};
 HyLinkError result = HyLink.getInstance(this).startScan(uuids, 0);
+```
+
+# Sample usage - Connect and disconnect.
+HyLink.getInstance(this).connectDevice is an async function, it will return connect is success or not.
+```groovy
+boolean connectSuccess = HyLink.getInstance(this).connectDevice(device, new HyLink.ConnectCallback() {
+                    @Override
+                    public void completion(boolean success, int status) {
+                        Log.v(TAG, "connect " + device.name + " - " + (success ? "Success" : "Failed"));
+                        progressDialog.setVisibility(View.INVISIBLE);
+                        if (success) {
+                            didConnected(device);
+                        } else {
+                            Log.i(TAG, "Connect Failed!");
+                            startScan();
+                        }
+                    }
+                });
+```
+
+After connected success, stored connected device for later use.
+```groovy
+private void didConnected(HyDevice device) {
+        Log.d(TAG, "didConnected " + device.name);
+        stopScan();
+        DeviceManager.instance.connectedDevice = device;
+    }
+```
+
+If you want to disconnect, call HyLink.getInstance(this)disconnectDevice.
+
+Don't forget to check is need to disconnect when you close the app.
+```groovy
+@Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Log.i(TAG, "onBackPressed");
+        HyDevice device = DeviceManager.instance.connectedDevice;
+        if (device != null) {
+            DeviceManager.instance.connectedDevice = null;
+            HyLink.getInstance(this).disconnectDevice(device);
+        }
+    }
+```
+
+After disconnectDevice, your hyLinkListener will receive hyLinkDidDisconnected event.
+```groovy
+@Override
+    public void hyLinkDidDisconnected(HyDevice device) {
+        Log.i(TAG, "hyLinkDidDisconnected " + device.name);
+        //device is disconnected
+    }
 ```
