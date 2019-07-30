@@ -30,12 +30,12 @@ minSdkVersion 18
 ```
 
 # Features
-- Scan and filter with uuids.
+- Scan.
 - Connect and disconnect.
 - Continuously receiving data.
 - One-time inquiry data.
 
-# Sample usage - Scan and filter with uuids
+# Sample usage - Scan.
 ![alt tag](https://media.giphy.com/media/daPFmDWynBAZij4hF7/source.gif)
 
 Check permission before scan.(Android 6.0 need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION)
@@ -96,31 +96,22 @@ Now you can start scan with call HyLink.getInstance(context).startScan()
 HyLinkError result = HyLink.getInstance(context).startScan();
 ```
 
-Or set timeout and filter by GATT service uuids.
- ```groovy
-UUID[] uuids = {UUID.fromString(BLE_GATT_SERVICE_UUID_CROCO_H),
-                UUID.fromString(BLE_GATT_SERVICE_UUID_GORILLA),
-                UUID.fromString(BLE_GATT_SERVICE_UUID_DFU)};
-HyLinkError result = HyLink.getInstance(context).startScan(uuids, 0);
-```
-
 # Sample usage - Connect and disconnect.
 Tap the device name in the list to connect.
 
-![alt tag](https://media.giphy.com/media/SqlvnAqdn1SRHmf0dn/source.gif)
+![alt tag](https://media.giphy.com/media/iGdcAlHhOotxsQuEuz/source.gif)
 
 HyLink.getInstance(this).connectDevice is an async function, it will return connect is success or not.
 ```groovy
-boolean connectSuccess = HyLink.getInstance(this).connectDevice(device, new HyLink.ConnectCallback() {
+boolean connectSuccess = HyLink.getInstance(context).connectDevice(device, new HyLink.ConnectCallback() {
                     @Override
                     public void completion(boolean success, int status) {
                         Log.v(TAG, "connect " + device.name + " - " + (success ? "Success" : "Failed"));
                         progressDialog.setVisibility(View.INVISIBLE);
                         if (success) {
-                            didConnected(device);
+                            //connect success
                         } else {
-                            showConnectFailedMessage();
-                            startScan();
+                            //connect failed
                         }
                     }
                 });
@@ -160,7 +151,7 @@ If a device is disconnected, your hyLinkListener will receive hyLinkDidDisconnec
 ```
 
 # Sample usage - Continuously receiving data.
-![alt tag](https://media.giphy.com/media/QA1OfdZeCQBLlBAkKW/source.gif)
+![alt tag](https://media.giphy.com/media/KzL07fpAcXhjBWeT8Q/source.gif)
 
 hyLinkDidReceived callback in your hyLinkListener will receive data per 0.6 second.
 
@@ -179,21 +170,21 @@ Data by HyDataInfo contains information from console(display) and driver.They co
 ```
 
 # Sample usage - One-time inquiry data.
-![alt tag](https://media.giphy.com/media/JpvZS05GsQJyydzZRk/source.gif)
+![alt tag](https://media.giphy.com/media/VJr2BDqKTp0HIzq89z/source.gif)
 
 We can ask information from the console or driver in an async way.
 
 ```groovy
-private void getBikeId() {
+private void getPartNumber() {
         final HyDevice device = DeviceManager.instance.connectedDevice;
         if (device != null) {
-            device.consoleParams.getBikeId(new ReadStringCallback() {
+            device.consoleParams.getPartNumber(new ReadStringCallback() {
                 @Override
-                public void completion(boolean success, String bikeId) {
+                public void completion(boolean success, String partNumber) {
                     if (success) {
-                        textViewBikeId.setText(bikeId);
+                        textViewPartNumber.setText(partNumber);
                     } else {
-                        textViewBikeId.setText(getString(R.string.failed));
+                        textViewPartNumber.setText(getString(R.string.failed));
                     }
                 }
             });
