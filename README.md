@@ -24,6 +24,11 @@ dependencies {
 }
 ```
 
+Minimal required sdk version is 18
+```groovy
+minSdkVersion 18
+```
+
 # Features
 - Scan and filter with uuids.
 - Connect and disconnect.
@@ -33,7 +38,7 @@ dependencies {
 # Sample usage - Scan and filter with uuids
 ![alt tag](https://media.giphy.com/media/daPFmDWynBAZij4hF7/source.gif)
 
-Before scan, check thast you have ACCESS_COARSE_LOCATION permission.
+Check permission before scan.(Android 6.0 need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION)
 ```groovy
 final String[] permissions = {android.Manifest.permission.ACCESS_COARSE_LOCATION};
         if (EasyPermissions.hasPermissions(this, permissions)) {
@@ -45,7 +50,8 @@ final String[] permissions = {android.Manifest.permission.ACCESS_COARSE_LOCATION
 
 Implements HyLink.Listener and declare your hyLinkListener to override hyLinkScan method.Most of the features require this 
 hyLinkListener.
-You can update scanned device to ui when hyLinkScan received new hyDevice.
+
+You can update scanned device to ui when hyLinkScan received new hyDevice scanned callback.
 ```groovy
 public class HyLinkListenerAdapter implements HyLink.Listener {
 
@@ -74,28 +80,20 @@ private HyLink.Listener hyLinkListener = new HyLinkListenerAdapter() {
         @Override
         public void hyLinkScan(HyDevice hyDevice, int RSSI) {
             super.hyLinkScan(hyDevice, RSSI);
-            onHyDeviceScanned();
+            //update scanned device to ui
         }
     };
 ```
 
-Then add your hyLinkListener in HyLink to receive hyLinkScan event.
+Then add your hyLinkListener in HyLink to receive hyLinkScan callback.
 ```groovy
-final HyLink hyLink = HyLink.getInstance(this);
+final HyLink hyLink = HyLink.getInstance(context);
         hyLink.addListener(hyLinkListener);
 ```
 
-Start scan with no uuid filter.
+Now you can start scan with call HyLink.getInstance(context).startScan()
 ```groovy
-HyLinkError result = HyLink.getInstance(context).startScan()
-```
-
-Or set timeout and filter by GATT service uuids.
-```groovy
-UUID[] uuids = {UUID.fromString(BLE_GATT_SERVICE_UUID_CROCO_H),
-                UUID.fromString(BLE_GATT_SERVICE_UUID_GORILLA),
-                UUID.fromString(BLE_GATT_SERVICE_UUID_DFU)};
-HyLinkError result = HyLink.getInstance(this).startScan(uuids, 0);
+HyLinkError result = HyLink.getInstance(context).startScan();
 ```
 
 # Sample usage - Connect and disconnect.
@@ -113,7 +111,7 @@ boolean connectSuccess = HyLink.getInstance(this).connectDevice(device, new HyLi
                         if (success) {
                             didConnected(device);
                         } else {
-                            Log.i(TAG, "Connect Failed!");
+                            showConnectFailedMessage();
                             startScan();
                         }
                     }
@@ -134,13 +132,12 @@ If you want to disconnect, call HyLink.getInstance(this)disconnectDevice.
 Don't forget to check is need to disconnect when you close the app.
 ```groovy
 @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Log.i(TAG, "onBackPressed");
+    protected void onDestroy() {
+        super.onDestroy();
         HyDevice device = DeviceManager.instance.connectedDevice;
         if (device != null) {
             DeviceManager.instance.connectedDevice = null;
-            HyLink.getInstance(this).disconnectDevice(device);
+            HyLink.getInstance(context).disconnectDevice(device);
         }
     }
 ```
