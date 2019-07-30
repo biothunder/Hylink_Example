@@ -96,6 +96,14 @@ Now you can start scan with call HyLink.getInstance(context).startScan()
 HyLinkError result = HyLink.getInstance(context).startScan();
 ```
 
+Or set timeout and filter by GATT service uuids.
+ ```groovy
+UUID[] uuids = {UUID.fromString(BLE_GATT_SERVICE_UUID_CROCO_H),
+                UUID.fromString(BLE_GATT_SERVICE_UUID_GORILLA),
+                UUID.fromString(BLE_GATT_SERVICE_UUID_DFU)};
+HyLinkError result = HyLink.getInstance(context).startScan(uuids, 0);
+```
+
 # Sample usage - Connect and disconnect.
 Tap the device name in the list to connect.
 
