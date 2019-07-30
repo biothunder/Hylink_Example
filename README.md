@@ -43,8 +43,8 @@ final String[] permissions = {android.Manifest.permission.ACCESS_COARSE_LOCATION
         }
 ```
 
-Implements HyLink.Listener and declare your hyLinkListener to override hyLinkScan method.
-
+Implements HyLink.Listener and declare your hyLinkListener to override hyLinkScan method.Most of the features require this 
+hyLinkListener.
 You can update scanned device to ui when hyLinkScan received new hyDevice.
 ```groovy
 public class HyLinkListenerAdapter implements HyLink.Listener {
@@ -99,6 +99,10 @@ HyLinkError result = HyLink.getInstance(this).startScan(uuids, 0);
 ```
 
 # Sample usage - Connect and disconnect.
+Tap the device name in the list to connect.
+
+![alt tag](https://media.giphy.com/media/SqlvnAqdn1SRHmf0dn/source.gif)
+
 HyLink.getInstance(this).connectDevice is an async function, it will return connect is success or not.
 ```groovy
 boolean connectSuccess = HyLink.getInstance(this).connectDevice(device, new HyLink.ConnectCallback() {
@@ -141,11 +145,53 @@ Don't forget to check is need to disconnect when you close the app.
     }
 ```
 
-After disconnectDevice, your hyLinkListener will receive hyLinkDidDisconnected event.
+If a device is disconnected, your hyLinkListener will receive hyLinkDidDisconnected event.
 ```groovy
 @Override
     public void hyLinkDidDisconnected(HyDevice device) {
         Log.i(TAG, "hyLinkDidDisconnected " + device.name);
         //device is disconnected
+    }
+```
+
+# Sample usage - Continuously receiving data.
+![alt tag](https://media.giphy.com/media/QA1OfdZeCQBLlBAkKW/source.gif)
+
+hyLinkDidReceived callback in your hyLinkListener will receive data per 0.6 second.
+
+Data by HyDataInfo contains information from console(display) and driver.They contain current speed, battery capacity, odo, light on/off ...etc information.
+```groovy
+@Override
+        public void hyLinkDidReceived(HyDevice device, HyDataType type, HyDataInfo data) {
+            switch (type) {
+                case DISP: //update display info to ui
+                break;
+                case DRV:  //update driver info to ui
+                break;
+                case ERR_MSG: break;
+            }
+        }
+```
+
+# Sample usage - One-time inquiry data.
+![alt tag](https://media.giphy.com/media/JpvZS05GsQJyydzZRk/source.gif)
+
+We can ask information from the console or driver in an async way.
+
+```groovy
+private void getBikeId() {
+        final HyDevice device = DeviceManager.instance.connectedDevice;
+        if (device != null) {
+            device.consoleParams.getBikeId(new ReadStringCallback() {
+                @Override
+                public void completion(boolean success, String bikeId) {
+                    if (success) {
+                        textViewBikeId.setText(bikeId);
+                    } else {
+                        textViewBikeId.setText(getString(R.string.failed));
+                    }
+                }
+            });
+        }
     }
 ```
